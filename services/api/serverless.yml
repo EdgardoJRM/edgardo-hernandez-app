@@ -1,0 +1,242 @@
+service: edgardo-hernandez-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  environment:
+    JWT_SECRET: ${env:JWT_SECRET, 'dev-secret-change-in-production'}
+    SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, 'soporte@edgardohernandez.com'}
+    APP_BASE_URL: ${env:APP_BASE_URL, 'http://localhost:8081'}
+    USERS_TABLE: ${self:service}-users-${self:provider.stage}
+    AUTH_CHALLENGES_TABLE: ${self:service}-auth-challenges-${self:provider.stage}
+    FORMS_TABLE: ${self:service}-forms-${self:provider.stage}
+    SUBMISSIONS_TABLE: ${self:service}-submissions-${self:provider.stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AUTH_CHALLENGES_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FORMS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUBMISSIONS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUBMISSIONS_TABLE}/index/*"
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+          Resource:
+            - "arn:aws:s3:::edgardohernandez-public/*"
+        - Effect: Allow
+          Action:
+            - s3:ListBucket
+          Resource:
+            - "arn:aws:s3:::edgardohernandez-public"
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dynamodb-local
+  - serverless-offline
+
+package:
+  individually: false
+  excludeDevDependencies: false
+
+custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: false
+    stages:
+      - dev
+  serverless-offline:
+    httpPort: 3001
+  typescript:
+    copyDependencies: true
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USERS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    AuthChallengesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.AUTH_CHALLENGES_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: challengeId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: challengeId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: expiresAt
+          Enabled: true
+
+    FormsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.FORMS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: formId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: formId
+            KeyType: HASH
+
+    SubmissionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.SUBMISSIONS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: submissionId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: submissionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+functions:
+  authStart:
+    handler: src/handlers/auth/start.handler
+    events:
+      - http:
+          path: auth/start
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: false
+
+  authVerifyOtp:
+    handler: src/handlers/auth/verifyOtp.handler
+    events:
+      - http:
+          path: auth/verify-otp
+          method: post
+          cors: true
+
+  authExchangeMagic:
+    handler: src/handlers/auth/exchangeMagic.handler
+    events:
+      - http:
+          path: auth/exchange-magic
+          method: post
+          cors: true
+
+  getMe:
+    handler: src/handlers/users/getMe.handler
+    events:
+      - http:
+          path: me
+          method: get
+          cors: true
+
+  updateMe:
+    handler: src/handlers/users/updateMe.handler
+    events:
+      - http:
+          path: me
+          method: put
+          cors: true
+
+  getForms:
+    handler: src/handlers/forms/getForms.handler
+    events:
+      - http:
+          path: forms
+          method: get
+          cors: true
+
+  getForm:
+    handler: src/handlers/forms/getForm.handler
+    events:
+      - http:
+          path: forms/{formId}
+          method: get
+          cors: true
+
+  submitForm:
+    handler: src/handlers/forms/submitForm.handler
+    events:
+      - http:
+          path: forms/{formId}/submit
+          method: post
+          cors: true
+
+  getSubmissions:
+    handler: src/handlers/submissions/getSubmissions.handler
+    events:
+      - http:
+          path: submissions
+          method: get
+          cors: true
+
+  getSubmission:
+    handler: src/handlers/submissions/getSubmission.handler
+    events:
+      - http:
+          path: submissions/{submissionId}
+          method: get
+          cors: true
+

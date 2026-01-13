@@ -1,0 +1,109 @@
+import { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { apiFetch } from '../../src/utils/api';
+import { useAuthStore } from '../../src/store/authStore';
+import { theme } from '../../src/theme';
+
+export default function AuthCallback() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const { setAuth } = useAuthStore();
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const token = params.token as string;
+    const email = params.email as string;
+
+    if (!token || !email) {
+      setStatus('error');
+      setError('Parámetros inválidos');
+      return;
+    }
+
+    const exchangeToken = async () => {
+      try {
+        const response = await apiFetch<{ token: string; user: any }>(
+          'auth/exchange-magic',
+          'POST',
+          {
+            email: decodeURIComponent(email),
+            token,
+          }
+        );
+
+        if (response.success && response.data) {
+          await setAuth(response.data.token, response.data.user);
+          setStatus('success');
+          setTimeout(() => {
+            router.replace('/dashboard');
+          }, 1000);
+        } else {
+          setStatus('error');
+          setError(response.error || 'Token inválido o expirado');
+        }
+      } catch (err: any) {
+        setStatus('error');
+        setError(err.message || 'Ocurrió un error');
+      }
+    };
+
+    exchangeToken();
+  }, []);
+
+  if (status === 'loading') {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.text}>Verificando enlace...</Text>
+      </View>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error</Text>
+        <Text style={styles.errorMessage}>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.successText}>¡Bienvenido!</Text>
+      <Text style={styles.text}>Redirigiendo...</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background,
+  },
+  text: {
+    marginTop: theme.spacing.md,
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+  },
+  successText: {
+    ...theme.typography.title,
+    color: theme.colors.success,
+    marginBottom: theme.spacing.sm,
+  },
+  errorText: {
+    ...theme.typography.title,
+    color: theme.colors.error,
+    marginBottom: theme.spacing.sm,
+  },
+  errorMessage: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
+});

@@ -1,0 +1,43 @@
+{
+  "name": "@edgardo-hernandez/api",
+  "version": "1.0.0",
+  "description": "Backend API for Edgardo Hernandez The App",
+  "main": "index.js",
+  "scripts": {
+    "dev": "serverless offline",
+    "deploy": "serverless deploy",
+    "seed": "ts-node scripts/seed.ts",
+    "seed:local": "AWS_ENDPOINT_URL=http://localhost:8000 ts-node scripts/seed.ts",
+    "upload:logo": "ts-node scripts/upload-logo.ts",
+    "setup:local": "./start-local.sh",
+    "dynamodb:install": "mkdir -p .dynamodb && curl -L https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz | tar -xz -C .dynamodb || echo 'Instalación manual: descarga DynamoDB Local y colócalo en .dynamodb/'",
+    "dynamodb:start": "java -Djava.library.path=.dynamodb/DynamoDBLocal_lib -jar .dynamodb/DynamoDBLocal.jar -sharedDb -port 8000",
+    "dynamodb:stop": "pkill -f DynamoDBLocal",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/client-ses": "^3.490.0",
+    "@aws-sdk/lib-dynamodb": "^3.490.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "react-dom": "^18.2.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.130",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "dynamodb-local": "^0.0.36",
+    "serverless": "^3.38.0",
+    "serverless-dynamodb-local": "^0.2.40",
+    "serverless-offline": "^13.3.0",
+    "serverless-plugin-typescript": "^2.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

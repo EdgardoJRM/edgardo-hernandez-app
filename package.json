@@ -1,0 +1,17 @@
+{
+  "name": "edgardo-hernandez-the-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:api": "cd services/api && npm run dev",
+    "dev:client": "cd apps/client && npm start",
+    "deploy:api": "cd services/api && npm run deploy"
+  },
+  "dependencies": {
+    "expo-linking": "~6.2.0"
+  }
+}
