@@ -22,8 +22,16 @@ export default function AuthCallback() {
       return (value as string) || '';
     };
 
-    const token = getParam('token');
-    const email = getParam('email');
+    let token = getParam('token');
+    let email = getParam('email');
+
+    // Decodificar si viene codificado
+    try {
+      token = decodeURIComponent(token);
+      email = decodeURIComponent(email);
+    } catch (e) {
+      // Si ya está decodificado, continuar
+    }
 
     if (!token || !email) {
       setStatus('error');
@@ -34,20 +42,20 @@ export default function AuthCallback() {
 
     const exchangeToken = async () => {
       try {
-        const decodedEmail = decodeURIComponent(email);
         const trimmedToken = token.trim();
+        const trimmedEmail = email.toLowerCase().trim();
         console.log('Exchanging token for:', { 
-          email: decodedEmail, 
+          email: trimmedEmail, 
           tokenLength: trimmedToken.length,
           tokenPrefix: trimmedToken.substring(0, 10),
-          fullToken: trimmedToken
+          tokenSuffix: trimmedToken.substring(trimmedToken.length - 10)
         });
         
         const response = await apiFetch<{ token: string; user: any }>(
           'auth/exchange-magic',
           'POST',
           {
-            email: decodedEmail,
+            email: trimmedEmail,
             token: trimmedToken,
           }
         );
