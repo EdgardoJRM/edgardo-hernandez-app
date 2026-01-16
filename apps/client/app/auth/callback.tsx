@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiFetch } from '../../src/utils/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -11,6 +11,7 @@ export default function AuthCallback() {
   const { setAuth } = useAuthStore();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     // En web, los query params pueden venir como string o array
@@ -79,12 +80,7 @@ export default function AuthCallback() {
             fullResponse: response
           });
           
-          // Si el error es que el enlace expiró, ofrecer opción de solicitar uno nuevo
-          if (errorMsg.includes('expirado') || errorMsg.includes('inválido')) {
-            setTimeout(() => {
-              router.replace('/auth');
-            }, 3000);
-          }
+          // No redirigir automáticamente, dejar que el usuario elija
         }
       } catch (err: any) {
         setStatus('error');
@@ -96,6 +92,48 @@ export default function AuthCallback() {
     exchangeToken();
   }, [params]);
 
+  const handleResendEmail = async () => {
+    const getParam = (key: string): string => {
+      const value = params[key];
+      if (Array.isArray(value)) {
+        return value[0] || '';
+      }
+      return (value as string) || '';
+    };
+
+    let email = getParam('email');
+    try {
+      email = decodeURIComponent(email);
+    } catch (e) {
+      // Si ya está decodificado, continuar
+    }
+
+    if (!email) {
+      router.replace('/auth');
+      return;
+    }
+
+    setResending(true);
+    try {
+      const response = await apiFetch('auth/start', 'POST', {
+        email: email.toLowerCase().trim(),
+      });
+
+      if (response.success) {
+        router.push({
+          pathname: '/auth/sent',
+          params: { email: email.toLowerCase().trim() },
+        });
+      } else {
+        setError(response.error || 'No se pudo enviar el email. Por favor intenta de nuevo.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Ocurrió un error al enviar el email.');
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (status === 'loading') {
     return (
       <View style={styles.container}>
@@ -106,14 +144,44 @@ export default function AuthCallback() {
   }
 
   if (status === 'error') {
+    const isExpired = error.includes('expirado') || error.includes('inválido');
+    
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error</Text>
         <Text style={styles.errorMessage}>{error}</Text>
-        {(error.includes('expirado') || error.includes('inválido')) && (
-          <Text style={styles.redirectText}>
-            Redirigiendo a la página de inicio de sesión...
-          </Text>
+        
+        {isExpired && (
+          <View style={styles.actionContainer}>
+            <TouchableOpacity
+              style={[styles.button, resending && styles.buttonDisabled]}
+              onPress={handleResendEmail}
+              disabled={resending}
+            >
+              {resending ? (
+                <ActivityIndicator color={theme.colors.white} />
+              ) : (
+                <Text style={styles.buttonText}>Solicitar nuevo enlace</Text>
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => router.replace('/auth')}
+              disabled={resending}
+            >
+              <Text style={styles.secondaryButtonText}>Volver al inicio</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {!isExpired && (
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => router.replace('/auth')}
+          >
+            <Text style={styles.secondaryButtonText}>Volver al inicio</Text>
+          </TouchableOpacity>
         )}
       </View>
     );
@@ -156,10 +224,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: theme.spacing.md,
   },
-  redirectText: {
-    ...theme.typography.bodySmall,
-    color: theme.colors.primary,
-    textAlign: 'center',
-    marginTop: theme.spacing.md,
+  actionContainer: {
+    width: '100%',
+    marginTop: theme.spacing.xl,
+    maxWidth: 400,
+  },
+  button: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    ...theme.typography.body,
+    color: theme.colors.white,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  secondaryButtonText: {
+    ...theme.typography.body,
+    color: theme.colors.textSecondary,
+    fontWeight: '600',
   },
 });
