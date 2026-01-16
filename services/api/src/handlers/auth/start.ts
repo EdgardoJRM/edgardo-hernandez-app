@@ -60,12 +60,28 @@ export const handler = async (
     const token = generateToken();
     const tokenHash = await hashOtp(token);
 
+    console.log('Generated auth tokens:', {
+      email,
+      otpLength: otp.length,
+      tokenLength: token.length,
+      tokenPrefix: token.substring(0, 10)
+    });
+
     // Create both challenges
-    await createChallenge(email, 'otp', otpHash, 10, clientIp);
-    await createChallenge(email, 'magic_link', tokenHash, 15, clientIp);
+    const otpChallenge = await createChallenge(email, 'otp', otpHash, 10, clientIp);
+    const magicChallenge = await createChallenge(email, 'magic_link', tokenHash, 15, clientIp);
+
+    console.log('Challenges created:', {
+      otpChallengeId: otpChallenge.challengeId,
+      magicChallengeId: magicChallenge.challengeId,
+      otpExpiresAt: otpChallenge.expiresAt,
+      magicExpiresAt: magicChallenge.expiresAt
+    });
 
     // Send combined email with both methods
     await sendCombinedAuthEmail(email, otp, token);
+
+    console.log('Email sent successfully to:', email);
 
     return successResponse({ message: 'sent' });
   } catch (error: any) {

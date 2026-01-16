@@ -11,6 +11,9 @@ interface User {
   industry?: string;
   tags?: string[];
   role?: 'user' | 'employee' | 'admin';
+  clickfunnelsId?: string;
+  clickfunnelsStatus?: string;
+  clickfunnelsTags?: string[];
 }
 
 interface AuthState {
@@ -31,8 +34,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
 
   setAuth: async (token: string, user: User) => {
-    await setToken(token);
-    set({ token, user, isAuthenticated: true, isLoading: false });
+    console.log('setAuth called with:', { 
+      tokenLength: token?.length, 
+      userId: user?.userId, 
+      email: user?.email 
+    });
+    try {
+      await setToken(token);
+      console.log('Token saved to storage');
+      set({ token, user, isAuthenticated: true, isLoading: false });
+      console.log('Auth state updated');
+    } catch (error: any) {
+      console.error('Error in setAuth:', error);
+      throw error;
+    }
   },
 
   logout: async () => {

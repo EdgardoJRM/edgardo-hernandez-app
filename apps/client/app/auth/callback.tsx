@@ -62,14 +62,30 @@ export default function AuthCallback() {
           }
         );
 
-        console.log('Exchange response:', JSON.stringify(response, null, 2));
+        console.log('Exchange response:', {
+          success: response.success,
+          hasData: !!response.data,
+          hasToken: !!response.data?.token,
+          hasUser: !!response.data?.user,
+          error: response.error
+        });
 
         if (response.success && response.data) {
-          await setAuth(response.data.token, response.data.user);
-          setStatus('success');
-          setTimeout(() => {
-            router.replace('/dashboard');
-          }, 1000);
+          console.log('Setting auth with token length:', response.data.token?.length);
+          console.log('User data:', response.data.user);
+          
+          try {
+            await setAuth(response.data.token, response.data.user);
+            console.log('Auth set successfully, redirecting to dashboard');
+            setStatus('success');
+            setTimeout(() => {
+              router.replace('/dashboard');
+            }, 1000);
+          } catch (authError: any) {
+            console.error('Error setting auth:', authError);
+            setStatus('error');
+            setError('Error al guardar la sesión. Por favor intenta de nuevo.');
+          }
         } else {
           setStatus('error');
           const errorMsg = response.error || 'Token inválido o expirado';

@@ -64,11 +64,13 @@ export const handler = async (
 
     console.log('Token verified successfully');
 
-    // Mark challenge as consumed (one-time use)
+    // Mark challenge as consumed (one-time use) - DESPUÉS de verificar
     await markChallengeConsumed(challenge.challengeId);
+    console.log('Challenge marked as consumed:', challenge.challengeId);
 
     // Get or create user
     let user = await getOrCreateUser(email);
+    console.log('User retrieved/created:', { userId: user.userId, email: user.email });
 
     // Verificar y sincronizar con ClickFunnels (no bloquear si falla)
     let clickfunnelsData;
@@ -118,15 +120,10 @@ export const handler = async (
       email: user.email,
     });
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify(
-        successResponse({
-          token: tokenJWT,
+    console.log('JWT generated successfully for user:', user.userId);
+
+    const responseData = {
+      token: tokenJWT,
           user: {
             userId: user.userId,
             email: user.email,
@@ -134,9 +131,22 @@ export const handler = async (
             business: user.business,
             industry: user.industry,
             tags: user.tags,
+            role: user.role,
+            clickfunnelsId: user.clickfunnelsId,
+            clickfunnelsStatus: user.clickfunnelsStatus,
+            clickfunnelsTags: user.clickfunnelsTags,
           },
-        })
-      ),
+    };
+
+    console.log('Returning response with token length:', tokenJWT.length);
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify(successResponse(responseData)),
     };
   } catch (error: any) {
     if (error instanceof z.ZodError) {
