@@ -88,6 +88,7 @@ export async function findValidChallenge(
     }
     
     // Primero intentar con el filtro completo
+    // Obtener múltiples challenges y ordenarlos por fecha de creación (más reciente primero)
     let result = await docClient.send(
       new QueryCommand({
         TableName: AUTH_CHALLENGES_TABLE,
@@ -102,10 +103,17 @@ export async function findValidChallenge(
           ':type': type,
           ':now': now,
         },
-        Limit: 1,
+        Limit: 5, // Obtener varios para ordenar manualmente y tomar el más reciente
         ScanIndexForward: false,
       })
     );
+    
+    // Ordenar manualmente por createdAt (más reciente primero) para asegurar que tomamos el más nuevo
+    if (result.Items && result.Items.length > 0) {
+      result.Items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      // Tomar solo el primero (más reciente)
+      result.Items = [result.Items[0]];
+    }
     
     // Si no encuentra nada, intentar sin el filtro de consumedAt (por si acaso)
     if ((!result.Items || result.Items.length === 0) && attempt === retries - 1) {
