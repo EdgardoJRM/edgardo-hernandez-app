@@ -116,7 +116,7 @@ export async function sendMagicLinkEmail(email: string, token: string): Promise<
 }
 
 export async function sendCombinedAuthEmail(email: string, otp: string, token: string): Promise<void> {
-  const magicLink = `${APP_BASE_URL}/auth/callback?token=${token}&email=${encodeURIComponent(email)}`;
+  const magicLink = `${APP_BASE_URL}/auth/callback?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
   const subject = 'Edgardo Hernandez - Magic Link Request ✨';
   const htmlBody = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
