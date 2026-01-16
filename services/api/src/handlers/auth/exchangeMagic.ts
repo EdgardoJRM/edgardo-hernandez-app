@@ -37,7 +37,13 @@ export const handler = async (
     const email = validated.email.toLowerCase().trim();
     const token = validated.token.trim();
 
-    console.log('Exchange magic request:', { email, tokenLength: token.length, tokenPrefix: token.substring(0, 10) });
+    console.log('Exchange magic request:', { 
+      email, 
+      tokenLength: token.length, 
+      tokenPrefix: token.substring(0, 10),
+      tokenSuffix: token.substring(token.length - 10),
+      tokenChars: token.split('').map((c, i) => ({ char: c, code: c.charCodeAt(0) })).slice(0, 20),
+    });
 
     // Find valid challenge
     const challenge = await findValidChallenge(email, 'magic_link');
@@ -51,6 +57,8 @@ export const handler = async (
       createdAt: challenge.createdAt,
       expiresAt: challenge.expiresAt,
       expiresIn: challenge.expiresAt - Math.floor(Date.now() / 1000),
+      hasTokenHash: !!challenge.tokenHash,
+      tokenHashPrefix: challenge.tokenHash?.substring(0, 20),
     });
 
     // Verify token
@@ -58,14 +66,31 @@ export const handler = async (
       return errorResponse('Desafío inválido', 400);
     }
 
+    // Log antes de verificar para debugging
+    console.log('Verifying token:', {
+      receivedTokenLength: token.length,
+      receivedTokenPrefix: token.substring(0, 10),
+      receivedTokenSuffix: token.substring(token.length - 10),
+      hashPrefix: challenge.tokenHash.substring(0, 20),
+    });
+
     const isValid = await verifyOtp(token, challenge.tokenHash);
     if (!isValid) {
       console.error('Token verification failed:', { 
         tokenLength: token.length, 
         tokenPrefix: token.substring(0, 10),
+        tokenSuffix: token.substring(token.length - 10),
+        tokenFull: token, // Log completo del token recibido
         hasTokenHash: !!challenge.tokenHash,
         challengeId: challenge.challengeId,
+        createdAt: challenge.createdAt,
       });
+      
+      // Intentar verificar con el token sin trim por si acaso
+      const untrimmedToken = validated.token;
+      const isValidUntrimmed = await verifyOtp(untrimmedToken, challenge.tokenHash);
+      console.log('Retry with untrimmed token:', { isValidUntrimmed, untrimmedLength: untrimmedToken.length });
+      
       return errorResponse('Token inválido. Este enlace puede ser de un email anterior. Por favor solicita un nuevo enlace.', 400);
     }
 

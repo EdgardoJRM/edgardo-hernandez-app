@@ -64,7 +64,9 @@ export const handler = async (
       email,
       otpLength: otp.length,
       tokenLength: token.length,
-      tokenPrefix: token.substring(0, 10)
+      tokenPrefix: token.substring(0, 10),
+      tokenSuffix: token.substring(token.length - 10),
+      tokenFull: token, // Log completo del token generado
     });
 
     // Create both challenges
