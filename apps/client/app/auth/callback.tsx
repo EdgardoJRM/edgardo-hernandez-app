@@ -12,8 +12,14 @@ export default function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
   const [resending, setResending] = useState(false);
+  const [hasExchanged, setHasExchanged] = useState(false);
 
   useEffect(() => {
+    // Prevenir múltiples ejecuciones
+    if (hasExchanged || status !== 'loading') {
+      return;
+    }
+
     // En web, los query params pueden venir como string o array
     const getParam = (key: string): string => {
       const value = params[key];
@@ -42,6 +48,8 @@ export default function AuthCallback() {
     }
 
     const exchangeToken = async () => {
+      // Marcar como ejecutado inmediatamente para prevenir múltiples llamadas
+      setHasExchanged(true);
       try {
         const trimmedToken = token.trim();
         const trimmedEmail = email.toLowerCase().trim();
@@ -106,7 +114,8 @@ export default function AuthCallback() {
     };
 
     exchangeToken();
-  }, [params]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez al montar
 
   const handleResendEmail = async () => {
     const getParam = (key: string): string => {

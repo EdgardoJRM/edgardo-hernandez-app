@@ -36,12 +36,30 @@ export async function apiFetch<T = any>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      // Si la respuesta no es JSON, devolver error
+      return {
+        success: false,
+        error: `Error del servidor: ${response.status} ${response.statusText}`,
+      };
+    }
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.error || `HTTP ${response.status}: ${response.statusText}`,
+        error: data.error || data.message || `HTTP ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    // Asegurar que la respuesta tenga el formato correcto
+    if (!data.success && !data.error) {
+      // Si no tiene success ni error, asumir que es un error
+      return {
+        success: false,
+        error: 'Respuesta inválida del servidor',
       };
     }
 
