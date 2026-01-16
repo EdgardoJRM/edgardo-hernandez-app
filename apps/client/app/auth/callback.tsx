@@ -111,8 +111,28 @@ export default function AuthCallback() {
         }
       } catch (err: any) {
         setStatus('error');
-        setError(err.message || 'Ocurrió un error');
-        console.error('Exchange error:', err);
+        // Extraer el mensaje de error real, ignorando errores de Amplify
+        let errorMessage = err.message || 'Ocurrió un error';
+        
+        // Si el error viene de la respuesta de la API, usar ese mensaje
+        if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.error) {
+          errorMessage = err.error;
+        }
+        
+        // Filtrar errores de Amplify que no son relevantes
+        if (errorMessage.includes('NotAuthorizedException') || errorMessage.includes('Amplify')) {
+          errorMessage = 'Error al verificar el enlace. Por favor solicita un nuevo enlace.';
+        }
+        
+        setError(errorMessage);
+        console.error('Exchange error:', {
+          error: err,
+          message: err.message,
+          stack: err.stack,
+          response: err.response,
+        });
       }
     };
 

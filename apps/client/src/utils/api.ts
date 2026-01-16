@@ -65,9 +65,22 @@ export async function apiFetch<T = any>(
 
     return data;
   } catch (error: any) {
+    console.error('API fetch error:', {
+      error,
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+    
+    // Filtrar errores de Amplify que no son relevantes
+    let errorMessage = error.message || 'Network error';
+    if (errorMessage.includes('NotAuthorizedException') || errorMessage.includes('Amplify')) {
+      errorMessage = 'Error de conexión. Por favor intenta de nuevo.';
+    }
+    
     return {
       success: false,
-      error: error.message || 'Network error',
+      error: errorMessage,
     };
   }
 }
