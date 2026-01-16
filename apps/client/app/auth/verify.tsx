@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,19 @@ import { useResponsive } from '../../src/utils/responsive';
 export default function AuthVerify() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const email = (params.email as string) || '';
   const { setAuth } = useAuthStore();
   const { isDesktop, width } = useResponsive();
   
+  // Manejar email que puede venir como string o array
+  const getEmail = (): string => {
+    const emailParam = params.email;
+    if (Array.isArray(emailParam)) {
+      return emailParam[0] || '';
+    }
+    return (emailParam as string) || '';
+  };
+  
+  const email = getEmail();
   const maxWidth = isDesktop ? 500 : '100%';
 
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -92,6 +101,14 @@ export default function AuthVerify() {
       setLoading(false);
     }
   };
+
+  // Auto-submit cuando se completa el código
+  useEffect(() => {
+    const codeString = code.join('');
+    if (codeString.length === 6 && !loading && email) {
+      handleVerify();
+    }
+  }, [code]);
 
   return (
     <View style={styles.container}>
