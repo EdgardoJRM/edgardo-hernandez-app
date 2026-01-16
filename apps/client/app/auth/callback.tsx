@@ -1,24 +1,28 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { useRouter, useLocalSearchParams, useSearchParams } from 'expo-router';
 import { apiFetch } from '../../src/utils/api';
 import { useAuthStore } from '../../src/store/authStore';
 import { theme } from '../../src/theme';
 
 export default function AuthCallback() {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const localParams = useLocalSearchParams();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = params.token as string;
-    const email = params.email as string;
+    // En web, usar searchParams; en móvil, usar localParams
+    const params = Platform.OS === 'web' ? searchParams : localParams;
+    const token = (params.get?.('token') || params.token) as string;
+    const email = (params.get?.('email') || params.email) as string;
 
     if (!token || !email) {
       setStatus('error');
-      setError('Parámetros inválidos');
+      setError('Parámetros inválidos. Token o email faltante.');
+      console.error('Missing params:', { token: !!token, email: !!email, params });
       return;
     }
 

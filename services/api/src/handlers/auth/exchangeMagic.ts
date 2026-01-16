@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { z } from 'zod';
-import { errorResponse, successResponse } from '../../utils/response';
+import { errorResponse, successResponse, handleOptionsRequest } from '../../utils/response';
 import { findValidChallenge, markChallengeConsumed } from '../../models/authChallenge';
 import { verifyOtp } from '../../utils/crypto';
 import { getOrCreateUser, updateUser } from '../../models/user';
@@ -15,12 +15,23 @@ const requestSchema = z.object({
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return handleOptionsRequest();
+  }
+
   try {
     if (!event.body) {
       return errorResponse('El cuerpo de la solicitud es requerido', 400);
     }
 
-    const body = JSON.parse(event.body);
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch (parseError) {
+      return errorResponse('JSON inválido en el cuerpo de la solicitud', 400);
+    }
+
     const validated = requestSchema.parse(body);
 
     const email = validated.email.toLowerCase().trim();
