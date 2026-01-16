@@ -52,12 +52,21 @@ export async function createChallenge(
     })
   );
 
+  console.log('Challenge created successfully:', {
+    challengeId: challenge.challengeId,
+    email: challenge.email,
+    type: challenge.type,
+    expiresAt: challenge.expiresAt,
+    expiresIn: challenge.expiresAt - Math.floor(Date.now() / 1000),
+  });
+
   return challenge;
 }
 
 export async function findValidChallenge(
   email: string,
-  type: ChallengeType
+  type: ChallengeType,
+  retries: number = 3
 ): Promise<AuthChallenge | null> {
   const now = Math.floor(Date.now() / 1000);
   const normalizedEmail = email.toLowerCase().trim();
@@ -66,40 +75,56 @@ export async function findValidChallenge(
     email: normalizedEmail, 
     type, 
     now,
-    table: AUTH_CHALLENGES_TABLE 
+    table: AUTH_CHALLENGES_TABLE,
+    retries
   });
   
-  const result = await docClient.send(
-    new QueryCommand({
-      TableName: AUTH_CHALLENGES_TABLE,
-      IndexName: 'email-index',
-      KeyConditionExpression: 'email = :email',
-      FilterExpression: '#type = :type AND expiresAt > :now AND attribute_not_exists(consumedAt)',
-      ExpressionAttributeNames: {
-        '#type': 'type',
-      },
-      ExpressionAttributeValues: {
-        ':email': normalizedEmail,
-        ':type': type,
-        ':now': now,
-      },
-      Limit: 1,
-      ScanIndexForward: false,
-    })
-  );
+  for (let attempt = 0; attempt < retries; attempt++) {
+    if (attempt > 0) {
+      // Esperar un poco antes de reintentar (eventual consistency de DynamoDB GSI)
+      await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+      console.log(`Retry attempt ${attempt + 1} for challenge lookup`);
+    }
+    
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: AUTH_CHALLENGES_TABLE,
+        IndexName: 'email-index',
+        KeyConditionExpression: 'email = :email',
+        FilterExpression: '#type = :type AND expiresAt > :now AND attribute_not_exists(consumedAt)',
+        ExpressionAttributeNames: {
+          '#type': 'type',
+        },
+        ExpressionAttributeValues: {
+          ':email': normalizedEmail,
+          ':type': type,
+          ':now': now,
+        },
+        Limit: 1,
+        ScanIndexForward: false,
+      })
+    );
 
-  console.log('Challenge query result:', {
-    found: result.Items?.length || 0,
-    items: result.Items?.map((item: any) => ({
-      challengeId: item.challengeId,
-      type: item.type,
-      expiresAt: item.expiresAt,
-      consumedAt: item.consumedAt,
-      createdAt: item.createdAt,
-    }))
-  });
+    console.log(`Challenge query result (attempt ${attempt + 1}):`, {
+      found: result.Items?.length || 0,
+      items: result.Items?.map((item: any) => ({
+        challengeId: item.challengeId,
+        type: item.type,
+        expiresAt: item.expiresAt,
+        expiresIn: item.expiresAt - now,
+        consumedAt: item.consumedAt,
+        createdAt: item.createdAt,
+        email: item.email,
+      }))
+    });
 
-  return result.Items?.[0] as AuthChallenge | null;
+    if (result.Items && result.Items.length > 0) {
+      return result.Items[0] as AuthChallenge;
+    }
+  }
+
+  console.error('Challenge not found after all retries');
+  return null;
 }
 
 export async function markChallengeConsumed(challengeId: string): Promise<void> {
