@@ -9,9 +9,9 @@ frontend:
         - cd apps/client
         - npm install
         - cd ../..
-        - echo "Node version:"
+        - echo "Node version"
         - 'node --version'
-        - echo "NPM version:"
+        - echo "NPM version"
         - 'npm --version'
     build:
       commands:
@@ -19,12 +19,12 @@ frontend:
         - cd apps/client
         - 'npm run build:web'
         - echo "Build completed, checking output..."
-        - ls -la dist/ || echo "dist folder not found"
+        - 'ls -la dist/ || echo "dist folder not found"'
         - cd ../..
     postBuild:
       commands:
         - echo "Post-build: Verifying artifacts..."
-        - ls -la apps/client/dist/ || echo "Warning: dist folder not found"
+        - 'ls -la apps/client/dist/ || echo "Warning: dist folder not found"'
         - echo "Build completed successfully!"
   artifacts:
     baseDirectory: apps/client/dist
