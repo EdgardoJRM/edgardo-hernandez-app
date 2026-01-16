@@ -91,7 +91,7 @@ export default function AuthStart() {
           {loading ? (
             <ActivityIndicator color={theme.colors.white} />
           ) : (
-            <Text style={styles.buttonText}>Enviar email de acceso</Text>
+            <Text style={styles.buttonText}>Acceder</Text>
           )}
         </TouchableOpacity>
         </View>
