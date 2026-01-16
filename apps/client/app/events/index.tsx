@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '../src/store/authStore';
-import { theme } from '../src/theme';
-import { apiFetch } from '../src/utils/api';
-import { ProtectedRoute } from '../src/components/ProtectedRoute';
+import { useAuthStore } from '../../src/store/authStore';
+import { theme } from '../../src/theme';
+import { apiFetch } from '../../src/utils/api';
+import { ProtectedRoute } from '../../src/components/ProtectedRoute';
 
 interface Event {
   eventId: string;
