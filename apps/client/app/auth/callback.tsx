@@ -28,12 +28,15 @@ export default function AuthCallback() {
 
     const exchangeToken = async () => {
       try {
+        const decodedEmail = decodeURIComponent(email);
+        console.log('Exchanging token for:', { email: decodedEmail, tokenLength: token.length });
+        
         const response = await apiFetch<{ token: string; user: any }>(
           'auth/exchange-magic',
           'POST',
           {
-            email: decodeURIComponent(email),
-            token,
+            email: decodedEmail,
+            token: token.trim(),
           }
         );
 
@@ -46,15 +49,17 @@ export default function AuthCallback() {
         } else {
           setStatus('error');
           setError(response.error || 'Token inválido o expirado');
+          console.error('Exchange failed:', response);
         }
       } catch (err: any) {
         setStatus('error');
         setError(err.message || 'Ocurrió un error');
+        console.error('Exchange error:', err);
       }
     };
 
     exchangeToken();
-  }, []);
+  }, [localParams, searchParams]);
 
   if (status === 'loading') {
     return (
