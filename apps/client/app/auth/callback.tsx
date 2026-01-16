@@ -35,14 +35,20 @@ export default function AuthCallback() {
     const exchangeToken = async () => {
       try {
         const decodedEmail = decodeURIComponent(email);
-        console.log('Exchanging token for:', { email: decodedEmail, tokenLength: token.length });
+        const trimmedToken = token.trim();
+        console.log('Exchanging token for:', { 
+          email: decodedEmail, 
+          tokenLength: trimmedToken.length,
+          tokenPrefix: trimmedToken.substring(0, 10),
+          fullToken: trimmedToken
+        });
         
         const response = await apiFetch<{ token: string; user: any }>(
           'auth/exchange-magic',
           'POST',
           {
             email: decodedEmail,
-            token: token.trim(),
+            token: trimmedToken,
           }
         );
 

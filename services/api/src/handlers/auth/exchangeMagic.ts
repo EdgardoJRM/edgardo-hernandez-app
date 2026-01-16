@@ -35,13 +35,18 @@ export const handler = async (
     const validated = requestSchema.parse(body);
 
     const email = validated.email.toLowerCase().trim();
-    const token = validated.token;
+    const token = validated.token.trim();
+
+    console.log('Exchange magic request:', { email, tokenLength: token.length, tokenPrefix: token.substring(0, 10) });
 
     // Find valid challenge
     const challenge = await findValidChallenge(email, 'magic_link');
     if (!challenge) {
+      console.error('Challenge not found for email:', email);
       return errorResponse('Enlace inválido o expirado', 400);
     }
+
+    console.log('Challenge found:', { challengeId: challenge.challengeId, createdAt: challenge.createdAt });
 
     // Verify token
     if (!challenge.tokenHash) {
@@ -50,8 +55,14 @@ export const handler = async (
 
     const isValid = await verifyOtp(token, challenge.tokenHash);
     if (!isValid) {
+      console.error('Token verification failed:', { 
+        tokenLength: token.length, 
+        hasTokenHash: !!challenge.tokenHash 
+      });
       return errorResponse('Token inválido', 400);
     }
+
+    console.log('Token verified successfully');
 
     // Mark challenge as consumed (one-time use)
     await markChallengeConsumed(challenge.challengeId);
