@@ -106,9 +106,14 @@ export default function AuthVerify() {
   useEffect(() => {
     const codeString = code.join('');
     if (codeString.length === 6 && !loading && email) {
-      handleVerify();
+      // Pequeño delay para evitar submit inmediato mientras el usuario sigue escribiendo
+      const timer = setTimeout(() => {
+        handleVerify();
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [code]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code.join('')]);
 
   return (
     <View style={styles.container}>
