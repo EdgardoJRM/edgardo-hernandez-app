@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
-import { useRouter, useLocalSearchParams, useSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiFetch } from '../../src/utils/api';
 import { useAuthStore } from '../../src/store/authStore';
 import { theme } from '../../src/theme';
 
 export default function AuthCallback() {
   const router = useRouter();
-  const localParams = useLocalSearchParams();
-  const searchParams = useSearchParams();
+  const params = useLocalSearchParams();
   const { setAuth } = useAuthStore();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // En web, usar searchParams; en móvil, usar localParams
-    const params = Platform.OS === 'web' ? searchParams : localParams;
-    const token = (params.get?.('token') || params.token) as string;
-    const email = (params.get?.('email') || params.email) as string;
+    // En web, los query params pueden venir como string o array
+    const getParam = (key: string): string => {
+      const value = params[key];
+      if (Array.isArray(value)) {
+        return value[0] || '';
+      }
+      return (value as string) || '';
+    };
+
+    const token = getParam('token');
+    const email = getParam('email');
 
     if (!token || !email) {
       setStatus('error');
