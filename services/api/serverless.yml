@@ -86,17 +86,13 @@ provider:
 
 plugins:
   - serverless-plugin-typescript
+  - serverless-plugin-include-dependencies
   - serverless-dynamodb-local
   - serverless-offline
 
 package:
   individually: false
   excludeDevDependencies: true
-  patterns:
-    - '!node_modules/**'
-    - 'node_modules/**'
-    - '!src/**/*.test.ts'
-    - '!src/**/*.spec.ts'
 
 custom:
   dynamodb:
@@ -111,6 +107,7 @@ custom:
     httpPort: 3001
   typescript:
     copyDependencies: true
+    packager: npm
 
 resources:
   Resources:
