@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { z } from 'zod';
-import { errorResponse, successResponse } from '../../utils/response';
+import { errorResponse, successResponse, handleOptionsRequest } from '../../utils/response';
 import { checkRateLimit } from '../../utils/rateLimit';
 import { createChallenge } from '../../models/authChallenge';
 import { generateOtp, generateToken, hashOtp } from '../../utils/crypto';
@@ -15,7 +15,6 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    const { handleOptionsRequest } = await import('../../utils/response');
     return handleOptionsRequest();
   }
 
@@ -24,13 +23,31 @@ export const handler = async (
       return errorResponse('El cuerpo de la solicitud es requerido', 400);
     }
 
-    const body = JSON.parse(event.body);
-    const validated = requestSchema.parse(body);
+    let body;
+    try {
+      body = JSON.parse(event.body);
+    } catch (parseError) {
+      return errorResponse('JSON inválido en el cuerpo de la solicitud', 400);
+    }
 
+    const validated = requestSchema.parse(body);
     const email = validated.email.toLowerCase().trim();
 
-    // Rate limiting
-    const clientIp = event.requestContext.identity?.sourceIp || 'unknown';
+    // Rate limiting - obtener IP de forma segura
+    let clientIp = 'unknown';
+    try {
+      if (event.requestContext) {
+        if (event.requestContext.identity && event.requestContext.identity.sourceIp) {
+          clientIp = event.requestContext.identity.sourceIp;
+        } else if ((event.requestContext as any).http && (event.requestContext as any).http.sourceIp) {
+          clientIp = (event.requestContext as any).http.sourceIp;
+        }
+      }
+    } catch (ipError) {
+      console.warn('Error obteniendo IP:', ipError);
+      // Continuar con 'unknown'
+    }
+
     const rateLimitKey = `${email}_${clientIp}`;
     const canProceed = await checkRateLimit(rateLimitKey, 5, 10);
     if (!canProceed) {
@@ -52,11 +69,15 @@ export const handler = async (
 
     return successResponse({ message: 'sent' });
   } catch (error: any) {
+    console.error('Error in auth/start:', error);
+    console.error('Error stack:', error.stack);
+    
     if (error instanceof z.ZodError) {
       return errorResponse(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
-    console.error('Error in auth/start:', error);
-    return errorResponse(error.message || 'Error interno del servidor', 500);
+    
+    // Asegurar que siempre devolvemos una respuesta válida con CORS
+    return errorResponse(error?.message || 'Error interno del servidor', 500);
   }
 };
 

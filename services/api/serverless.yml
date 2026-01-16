@@ -427,6 +427,17 @@ functions:
             headers:
               - Content-Type
               - Authorization
+              - X-Requested-With
+            allowCredentials: false
+      - http:
+          path: auth/start
+          method: options
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - Authorization
+              - X-Requested-With
             allowCredentials: false
 
   authVerifyOtp:
