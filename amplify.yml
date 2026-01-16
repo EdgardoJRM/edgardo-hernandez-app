@@ -17,7 +17,7 @@ frontend:
       commands:
         - echo "Building frontend..."
         - cd apps/client
-        - npm run build:web
+        - 'npm run build:web'
         - echo "Build completed, checking output..."
         - ls -la dist/ || echo "dist folder not found"
         - cd ../..
