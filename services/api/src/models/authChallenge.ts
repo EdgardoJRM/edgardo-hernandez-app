@@ -82,11 +82,13 @@ export async function findValidChallenge(
   for (let attempt = 0; attempt < retries; attempt++) {
     if (attempt > 0) {
       // Esperar un poco antes de reintentar (eventual consistency de DynamoDB GSI)
-      await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+      // Aumentar el delay para dar más tiempo al índice
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       console.log(`Retry attempt ${attempt + 1} for challenge lookup`);
     }
     
-    const result = await docClient.send(
+    // Primero intentar con el filtro completo
+    let result = await docClient.send(
       new QueryCommand({
         TableName: AUTH_CHALLENGES_TABLE,
         IndexName: 'email-index',
@@ -104,6 +106,39 @@ export async function findValidChallenge(
         ScanIndexForward: false,
       })
     );
+    
+    // Si no encuentra nada, intentar sin el filtro de consumedAt (por si acaso)
+    if ((!result.Items || result.Items.length === 0) && attempt === retries - 1) {
+      console.log('Last attempt: trying without consumedAt filter');
+      result = await docClient.send(
+        new QueryCommand({
+          TableName: AUTH_CHALLENGES_TABLE,
+          IndexName: 'email-index',
+          KeyConditionExpression: 'email = :email',
+          FilterExpression: '#type = :type AND expiresAt > :now',
+          ExpressionAttributeNames: {
+            '#type': 'type',
+          },
+          ExpressionAttributeValues: {
+            ':email': normalizedEmail,
+            ':type': type,
+            ':now': now,
+          },
+          Limit: 5, // Obtener más para filtrar manualmente
+          ScanIndexForward: false,
+        })
+      );
+      
+      // Filtrar manualmente los que no han sido consumidos
+      if (result.Items && result.Items.length > 0) {
+        const notConsumed = result.Items.filter(item => !item.consumedAt);
+        if (notConsumed.length > 0) {
+          result.Items = [notConsumed[0]]; // Tomar el primero no consumido
+        } else {
+          result.Items = [];
+        }
+      }
+    }
 
     console.log(`Challenge query result (attempt ${attempt + 1}):`, {
       found: result.Items?.length || 0,
