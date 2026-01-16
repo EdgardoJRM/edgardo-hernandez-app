@@ -14,7 +14,7 @@ const requestSchema = zod_1.z.object({
 const handler = async (event) => {
     try {
         if (!event.body) {
-            return (0, response_1.errorResponse)('Request body is required', 400);
+            return (0, response_1.errorResponse)('El cuerpo de la solicitud es requerido', 400);
         }
         const body = JSON.parse(event.body);
         const validated = requestSchema.parse(body);
@@ -23,15 +23,15 @@ const handler = async (event) => {
         // Find valid challenge
         const challenge = await (0, authChallenge_1.findValidChallenge)(email, 'magic_link');
         if (!challenge) {
-            return (0, response_1.errorResponse)('Invalid or expired link', 400);
+            return (0, response_1.errorResponse)('Enlace inválido o expirado', 400);
         }
         // Verify token
         if (!challenge.tokenHash) {
-            return (0, response_1.errorResponse)('Invalid challenge', 400);
+            return (0, response_1.errorResponse)('Desafío inválido', 400);
         }
         const isValid = await (0, crypto_1.verifyOtp)(token, challenge.tokenHash);
         if (!isValid) {
-            return (0, response_1.errorResponse)('Invalid token', 400);
+            return (0, response_1.errorResponse)('Token inválido', 400);
         }
         // Mark challenge as consumed (one-time use)
         await (0, authChallenge_1.markChallengeConsumed)(challenge.challengeId);
@@ -63,10 +63,10 @@ const handler = async (event) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return (0, response_1.errorResponse)(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+            return (0, response_1.errorResponse)(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
         }
         console.error('Error in auth/exchange-magic:', error);
-        return (0, response_1.errorResponse)(error.message || 'Internal server error', 500);
+        return (0, response_1.errorResponse)(error.message || 'Error interno del servidor', 500);
     }
 };
 exports.handler = handler;

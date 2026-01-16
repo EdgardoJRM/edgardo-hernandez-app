@@ -1,9 +1,12 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { verifyToken, JWTPayload } from './jwt';
+import { getUserById } from '../models/user';
+import { UserRole } from '../models/user';
 
 export interface AuthenticatedEvent extends APIGatewayProxyEvent {
   userId: string;
   email: string;
+  userRole?: UserRole;
 }
 
 export function extractAuthToken(event: APIGatewayProxyEvent): string | null {
@@ -18,16 +21,25 @@ export function extractAuthToken(event: APIGatewayProxyEvent): string | null {
   return parts[1];
 }
 
-export function authenticateRequest(event: APIGatewayProxyEvent): AuthenticatedEvent {
+export async function authenticateRequest(event: APIGatewayProxyEvent): Promise<AuthenticatedEvent> {
   const token = extractAuthToken(event);
   if (!token) {
-    throw new Error('Missing authorization token');
+    throw new Error('Token de autorización faltante');
   }
   const payload = verifyToken(token);
+  const user = await getUserById(payload.userId);
   return {
     ...event,
     userId: payload.userId,
     email: payload.email,
+    userRole: user?.role || 'user',
   };
+}
+
+export function requireRole(event: AuthenticatedEvent, allowedRoles: UserRole[]): void {
+  const userRole = event.userRole || 'user';
+  if (!allowedRoles.includes(userRole)) {
+    throw new Error('No tienes permisos para acceder a este recurso');
+  }
 }
 

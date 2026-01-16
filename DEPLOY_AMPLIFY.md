@@ -43,9 +43,22 @@ git push -u origin main
 
 En la configuración de Amplify, agrega estas variables de entorno:
 
+**Requeridas:**
 ```
 EXPO_PUBLIC_API_BASE_URL=https://13n353lry8.execute-api.us-east-1.amazonaws.com/dev
 ```
+
+**Cómo agregar:**
+1. En Amplify Console, ve a tu app
+2. Click en "Environment variables" en el menú lateral
+3. Click en "Manage variables"
+4. Agrega cada variable:
+   - Key: `EXPO_PUBLIC_API_BASE_URL`
+   - Value: `https://13n353lry8.execute-api.us-east-1.amazonaws.com/dev`
+5. Click en "Save"
+6. Amplify hará un nuevo deploy automáticamente
+
+**Nota:** Reemplaza la URL con la URL real de tu backend API después de hacer deploy del backend.
 
 ### 4. Build Settings
 
@@ -78,12 +91,39 @@ Una vez conectado, Amplify hará deploy automáticamente en cada push a la rama 
 
 ### Build falla
 
-1. Verifica que `node_modules` esté en `.gitignore`
-2. Verifica que las dependencias estén en `package.json`
-3. Revisa los logs de build en Amplify Console
+1. **Error: "dist folder not found"**
+   - Verifica que el comando `npm run build:web` se ejecute correctamente
+   - Revisa los logs de build en Amplify Console
+   - Asegúrate de que `expo export` esté funcionando
+
+2. **Error: "Module not found"**
+   - Verifica que `node_modules` esté en `.gitignore`
+   - Verifica que las dependencias estén en `package.json`
+   - Limpia el cache en Amplify y vuelve a hacer build
+
+3. **Error: "Command failed"**
+   - Revisa los logs completos en Amplify Console
+   - Verifica que Node.js 18+ esté configurado en Amplify
+   - Asegúrate de que todas las dependencias estén instaladas
 
 ### Variables de entorno no funcionan
 
 1. Asegúrate de que las variables estén configuradas en Amplify Console
 2. Las variables deben empezar con `EXPO_PUBLIC_` para ser accesibles en el frontend
+3. Después de agregar variables, Amplify hará un nuevo deploy automáticamente
+4. Verifica en los logs de build que las variables estén disponibles
+
+### El sitio no carga correctamente
+
+1. Verifica que el `baseDirectory` en `amplify.yml` sea correcto (`apps/client/dist`)
+2. Asegúrate de que el build genere archivos en la carpeta `dist`
+3. Verifica que el `index.html` esté en la raíz de `dist`
+4. Revisa la configuración de rewrites/redirects en Amplify Console si es necesario
+
+### Backend no responde
+
+1. Verifica que el backend esté desplegado correctamente
+2. Actualiza `EXPO_PUBLIC_API_BASE_URL` con la URL correcta del API Gateway
+3. Verifica que CORS esté configurado correctamente en el backend
+
 

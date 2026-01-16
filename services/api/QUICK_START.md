@@ -62,3 +62,4 @@ docker run -d -p 8000:8000 --name dynamodb-local amazon/dynamodb-local
 - Verifica: `curl http://localhost:8000`
 - Ejecuta: `AWS_ENDPOINT_URL=http://localhost:8000 npm run seed`
 
+

@@ -18,7 +18,7 @@ function verifyToken(token) {
         return decoded;
     }
     catch (error) {
-        throw new Error('Invalid or expired token');
+        throw new Error('Token inválido o expirado');
     }
 }
 //# sourceMappingURL=jwt.js.map

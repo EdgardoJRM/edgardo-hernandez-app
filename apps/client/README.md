@@ -41,3 +41,4 @@ Luego presiona `w` para abrir en web, o escanea el QR para móvil.
 - `/submissions` - Historial de respuestas
 - `/submissions/[id]` - Detalle de respuesta
 
+

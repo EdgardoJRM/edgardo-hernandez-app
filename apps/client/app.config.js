@@ -1,0 +1,40 @@
+module.exports = {
+  expo: {
+    name: "Edgardo Hernandez The App",
+    slug: "edgardo-hernandez-app",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "light",
+    splash: {
+      image: "./assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    assetBundlePatterns: [
+      "**/*"
+    ],
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.edgardohernandez.app"
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./assets/adaptive-icon.png",
+        backgroundColor: "#ffffff"
+      },
+      package: "com.edgardohernandez.app"
+    },
+    web: {
+      bundler: "metro"
+    },
+    scheme: "edgardohernandez",
+    plugins: [
+      "expo-router"
+    ],
+    experiments: {
+      typedRoutes: false
+    }
+  }
+};
+

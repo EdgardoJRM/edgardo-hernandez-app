@@ -17,7 +17,7 @@ function extractAuthToken(event) {
 function authenticateRequest(event) {
     const token = extractAuthToken(event);
     if (!token) {
-        throw new Error('Missing authorization token');
+        throw new Error('Token de autorización faltante');
     }
     const payload = (0, jwt_1.verifyToken)(token);
     return {

@@ -115,3 +115,4 @@ export function isMaxAttemptsReached(attempts: number): boolean {
   return attempts >= MAX_ATTEMPTS;
 }
 
+

@@ -11,16 +11,16 @@ export const handler = async (
 
     const formId = event.pathParameters?.formId;
     if (!formId) {
-      return errorResponse('formId is required', 400);
+      return errorResponse('El formId es requerido', 400);
     }
 
     const form = await getFormById(formId);
     if (!form) {
-      return errorResponse('Form not found', 404);
+      return errorResponse('Formulario no encontrado', 404);
     }
 
     if (!form.isActive) {
-      return errorResponse('Form is not active', 400);
+      return errorResponse('El formulario no está activo', 400);
     }
 
     return {
@@ -39,11 +39,11 @@ export const handler = async (
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     console.error('Error in getForm:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

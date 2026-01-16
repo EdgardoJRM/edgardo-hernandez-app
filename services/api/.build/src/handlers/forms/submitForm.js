@@ -15,17 +15,17 @@ const handler = async (event) => {
         const authEvent = (0, auth_1.authenticateRequest)(event);
         const formId = event.pathParameters?.formId;
         if (!formId) {
-            return (0, response_1.errorResponse)('formId is required', 400);
+            return (0, response_1.errorResponse)('El formId es requerido', 400);
         }
         if (!event.body) {
-            return (0, response_1.errorResponse)('Request body is required', 400);
+            return (0, response_1.errorResponse)('El cuerpo de la solicitud es requerido', 400);
         }
         const body = JSON.parse(event.body);
         const validated = requestSchema.parse(body);
         // Get form
         const form = await (0, form_1.getFormById)(formId);
         if (!form || !form.isActive) {
-            return (0, response_1.errorResponse)('Form not found or not active', 404);
+            return (0, response_1.errorResponse)('Formulario no encontrado o no activo', 404);
         }
         // Basic validation against form definition
         // (More sophisticated validation can be added)
@@ -46,14 +46,14 @@ const handler = async (event) => {
         };
     }
     catch (error) {
-        if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+        if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
             return (0, response_1.errorResponse)(error.message, 401);
         }
         if (error instanceof zod_1.z.ZodError) {
-            return (0, response_1.errorResponse)(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+            return (0, response_1.errorResponse)(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
         }
         console.error('Error in submitForm:', error);
-        return (0, response_1.errorResponse)(error.message || 'Internal server error', 500);
+        return (0, response_1.errorResponse)(error.message || 'Error interno del servidor', 500);
     }
 };
 exports.handler = handler;

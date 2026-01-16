@@ -9,7 +9,7 @@ const handler = async (event) => {
         const authEvent = (0, auth_1.authenticateRequest)(event);
         const user = await (0, user_1.getUserById)(authEvent.userId);
         if (!user) {
-            return (0, response_1.errorResponse)('User not found', 404);
+            return (0, response_1.errorResponse)('Usuario no encontrado', 404);
         }
         return {
             statusCode: 200,
@@ -30,11 +30,11 @@ const handler = async (event) => {
         };
     }
     catch (error) {
-        if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+        if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
             return (0, response_1.errorResponse)(error.message, 401);
         }
         console.error('Error in getMe:', error);
-        return (0, response_1.errorResponse)(error.message || 'Internal server error', 500);
+        return (0, response_1.errorResponse)(error.message || 'Error interno del servidor', 500);
     }
 };
 exports.handler = handler;

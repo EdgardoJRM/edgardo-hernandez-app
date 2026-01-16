@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "frontend": {
+    "framework": "react",
+    "config": {
+      "SourceDir": "apps/client",
+      "DistributionDir": "apps/client/dist",
+      "BuildCommand": "npm run build:web",
+      "StartCommand": "npm start"
+    }
+  }
+}
+

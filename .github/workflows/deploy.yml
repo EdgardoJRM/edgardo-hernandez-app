@@ -33,3 +33,4 @@ jobs:
           amplify_command: publish
           amplify_env: ${{ secrets.AMPLIFY_ENV }}
 
+

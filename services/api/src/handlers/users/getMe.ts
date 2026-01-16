@@ -7,11 +7,11 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const authEvent = authenticateRequest(event);
+    const authEvent = await authenticateRequest(event);
     const user = await getUserById(authEvent.userId);
 
     if (!user) {
-      return errorResponse('User not found', 404);
+      return errorResponse('Usuario no encontrado', 404);
     }
 
     return {
@@ -28,17 +28,22 @@ export const handler = async (
           business: user.business,
           industry: user.industry,
           tags: user.tags,
+          role: user.role || 'user',
+          clickfunnelsId: user.clickfunnelsId,
+          clickfunnelsStatus: user.clickfunnelsStatus,
+          clickfunnelsTags: user.clickfunnelsTags,
+          clickfunnelsData: user.clickfunnelsData,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         })
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     console.error('Error in getMe:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

@@ -26,10 +26,7 @@
       "package": "com.edgardohernandez.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro",
-      "output": "static",
-      "baseUrl": "/"
+      "bundler": "metro"
     },
     "scheme": "edgardohernandez",
     "plugins": [

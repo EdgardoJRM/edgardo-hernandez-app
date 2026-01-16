@@ -29,11 +29,11 @@ export const handler = async (
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     console.error('Error in getForms:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

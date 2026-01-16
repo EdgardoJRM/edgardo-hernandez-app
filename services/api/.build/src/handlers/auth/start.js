@@ -13,7 +13,7 @@ const requestSchema = zod_1.z.object({
 const handler = async (event) => {
     try {
         if (!event.body) {
-            return (0, response_1.errorResponse)('Request body is required', 400);
+            return (0, response_1.errorResponse)('El cuerpo de la solicitud es requerido', 400);
         }
         const body = JSON.parse(event.body);
         const validated = requestSchema.parse(body);
@@ -23,7 +23,7 @@ const handler = async (event) => {
         const rateLimitKey = `${email}_${clientIp}`;
         const canProceed = await (0, rateLimit_1.checkRateLimit)(rateLimitKey, 5, 10);
         if (!canProceed) {
-            return (0, response_1.errorResponse)('Too many requests. Please try again later.', 429);
+            return (0, response_1.errorResponse)('Demasiadas solicitudes. Por favor intenta más tarde.', 429);
         }
         // Generate both OTP and Magic Link
         const otp = (0, crypto_1.generateOtp)();
@@ -39,10 +39,10 @@ const handler = async (event) => {
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {
-            return (0, response_1.errorResponse)(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+            return (0, response_1.errorResponse)(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
         }
         console.error('Error in auth/start:', error);
-        return (0, response_1.errorResponse)(error.message || 'Internal server error', 500);
+        return (0, response_1.errorResponse)(error.message || 'Error interno del servidor', 500);
     }
 };
 exports.handler = handler;

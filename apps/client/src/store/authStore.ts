@@ -10,6 +10,7 @@ interface User {
   business?: string;
   industry?: string;
   tags?: string[];
+  role?: 'user' | 'employee' | 'admin';
 }
 
 interface AuthState {
@@ -73,4 +74,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
+
 

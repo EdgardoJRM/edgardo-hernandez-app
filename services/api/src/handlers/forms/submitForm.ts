@@ -18,11 +18,11 @@ export const handler = async (
 
     const formId = event.pathParameters?.formId;
     if (!formId) {
-      return errorResponse('formId is required', 400);
+      return errorResponse('El formId es requerido', 400);
     }
 
     if (!event.body) {
-      return errorResponse('Request body is required', 400);
+      return errorResponse('El cuerpo de la solicitud es requerido', 400);
     }
 
     const body = JSON.parse(event.body);
@@ -31,7 +31,7 @@ export const handler = async (
     // Get form
     const form = await getFormById(formId);
     if (!form || !form.isActive) {
-      return errorResponse('Form not found or not active', 404);
+      return errorResponse('Formulario no encontrado o no activo', 404);
     }
 
     // Basic validation against form definition
@@ -62,14 +62,14 @@ export const handler = async (
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+      return errorResponse(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
     console.error('Error in submitForm:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

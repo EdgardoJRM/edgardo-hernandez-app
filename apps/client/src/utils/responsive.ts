@@ -22,3 +22,4 @@ export const getMaxWidth = (width: number) => {
   return '100%';
 };
 
+

@@ -15,7 +15,7 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     if (!event.body) {
-      return errorResponse('Request body is required', 400);
+      return errorResponse('El cuerpo de la solicitud es requerido', 400);
     }
 
     const body = JSON.parse(event.body);
@@ -28,7 +28,7 @@ export const handler = async (
     const rateLimitKey = `${email}_${clientIp}`;
     const canProceed = await checkRateLimit(rateLimitKey, 5, 10);
     if (!canProceed) {
-      return errorResponse('Too many requests. Please try again later.', 429);
+      return errorResponse('Demasiadas solicitudes. Por favor intenta más tarde.', 429);
     }
 
     // Generate both OTP and Magic Link
@@ -47,10 +47,10 @@ export const handler = async (
     return successResponse({ message: 'sent' });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+      return errorResponse(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
     console.error('Error in auth/start:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

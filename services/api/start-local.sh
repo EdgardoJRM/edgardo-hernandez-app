@@ -44,3 +44,4 @@ echo ""
 echo "Y en otra terminal, el frontend con:"
 echo "  cd ../../apps/client && npm start"
 
+

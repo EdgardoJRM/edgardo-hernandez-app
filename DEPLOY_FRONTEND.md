@@ -85,3 +85,4 @@ El logo está disponible en:
 - Para usar el PDF directamente como imagen, convierte a PNG/JPG primero
 - El frontend está configurado para usar el brand kit completo
 
+

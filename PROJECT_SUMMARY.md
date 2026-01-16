@@ -107,3 +107,4 @@
 - Frontend web: `cd apps/client && npm run build:web` (luego deploy a Vercel/Netlify)
 - Frontend móvil: `expo build` o EAS Build
 
+

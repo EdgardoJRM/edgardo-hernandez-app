@@ -18,7 +18,7 @@ export const handler = async (
     const authEvent = authenticateRequest(event);
 
     if (!event.body) {
-      return errorResponse('Request body is required', 400);
+      return errorResponse('El cuerpo de la solicitud es requerido', 400);
     }
 
     const body = JSON.parse(event.body);
@@ -46,14 +46,14 @@ export const handler = async (
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`, 400);
+      return errorResponse(`Error de validación: ${error.errors.map(e => e.message).join(', ')}`, 400);
     }
     console.error('Error in updateMe:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 

@@ -95,3 +95,4 @@ Para desarrollo, Expo puede funcionar sin assets personalizados, pero para produ
 3. Configurar dominio (app.edgardohernandez.com)
 4. Deploy a producción
 
+

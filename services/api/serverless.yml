@@ -11,10 +11,26 @@ provider:
     JWT_SECRET: ${env:JWT_SECRET, 'dev-secret-change-in-production'}
     SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, 'soporte@edgardohernandez.com'}
     APP_BASE_URL: ${env:APP_BASE_URL, 'http://localhost:8081'}
+    CLICKFUNNELS_CLIENT_ID: ${env:CLICKFUNNELS_CLIENT_ID, '_NH9cr55huOJbUNvcLk-MYRKhQ_h1JyEEAGalc10da8'}
+    CLICKFUNNELS_CLIENT_SECRET: ${env:CLICKFUNNELS_CLIENT_SECRET, 'LzEJNuCFcYNc1LWfM05C51Hb54xAbdJPz51mHCK60Xs'}
+    CLICKFUNNELS_API_KEY: ${env:CLICKFUNNELS_API_KEY, ''}
+    CLICKFUNNELS_SUBDOMAIN: ${env:CLICKFUNNELS_SUBDOMAIN, 'edgardohernandez'}
+    CLICKFUNNELS_WORKSPACE_ID: ${env:CLICKFUNNELS_WORKSPACE_ID, 'jwRGrB'}
+    CLICKFUNNELS_API_URL: ${env:CLICKFUNNELS_API_URL, ''}
+    CLICKFUNNELS_OAUTH_URL: ${env:CLICKFUNNELS_OAUTH_URL, 'https://accounts.clickfunnels.com/oauth/token'}
     USERS_TABLE: ${self:service}-users-${self:provider.stage}
     AUTH_CHALLENGES_TABLE: ${self:service}-auth-challenges-${self:provider.stage}
     FORMS_TABLE: ${self:service}-forms-${self:provider.stage}
     SUBMISSIONS_TABLE: ${self:service}-submissions-${self:provider.stage}
+    MATERIALS_TABLE: ${self:service}-materials-${self:provider.stage}
+    PROJECTS_TABLE: ${self:service}-projects-${self:provider.stage}
+    ATTENDANCE_TABLE: ${self:service}-attendance-${self:provider.stage}
+    EMAIL_LOGS_TABLE: ${self:service}-email-logs-${self:provider.stage}
+    SMS_LOGS_TABLE: ${self:service}-sms-logs-${self:provider.stage}
+    BIRTHDAYS_TABLE: ${self:service}-birthdays-${self:provider.stage}
+    EVENTS_TABLE: ${self:service}-events-${self:provider.stage}
+    EVENT_REGISTRATIONS_TABLE: ${self:service}-event-registrations-${self:provider.stage}
+    ACCESS_TABLE: ${self:service}-access-${self:provider.stage}
   iam:
     role:
       statements:
@@ -30,9 +46,22 @@ provider:
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS_TABLE}"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS_TABLE}/index/*"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AUTH_CHALLENGES_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.AUTH_CHALLENGES_TABLE}/index/*"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.FORMS_TABLE}"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUBMISSIONS_TABLE}"
             - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SUBMISSIONS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.MATERIALS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.MATERIALS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.PROJECTS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.PROJECTS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.ATTENDANCE_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.ATTENDANCE_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.EMAIL_LOGS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.EMAIL_LOGS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SMS_LOGS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.SMS_LOGS_TABLE}/index/*"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.BIRTHDAYS_TABLE}"
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.BIRTHDAYS_TABLE}/index/*"
         - Effect: Allow
           Action:
             - ses:SendEmail
@@ -50,6 +79,10 @@ provider:
             - s3:ListBucket
           Resource:
             - "arn:aws:s3:::edgardohernandez-public"
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource: "*"
 
 plugins:
   - serverless-plugin-typescript
@@ -154,6 +187,234 @@ resources:
             Projection:
               ProjectionType: ALL
 
+    MaterialsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.MATERIALS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: materialId
+            AttributeType: S
+          - AttributeName: category
+            AttributeType: S
+        KeySchema:
+          - AttributeName: materialId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: category-index
+            KeySchema:
+              - AttributeName: category
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    ProjectsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PROJECTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: projectId
+            AttributeType: S
+          - AttributeName: assignedTo
+            AttributeType: S
+        KeySchema:
+          - AttributeName: projectId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: assignedTo-index
+            KeySchema:
+              - AttributeName: assignedTo
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    AttendanceTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ATTENDANCE_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: attendanceId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: checkInTime
+            AttributeType: N
+          - AttributeName: qrCode
+            AttributeType: S
+        KeySchema:
+          - AttributeName: attendanceId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-checkInTime-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: checkInTime
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: qrCode-index
+            KeySchema:
+              - AttributeName: qrCode
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    EmailLogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.EMAIL_LOGS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: emailLogId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: to
+            AttributeType: S
+        KeySchema:
+          - AttributeName: emailLogId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: to-index
+            KeySchema:
+              - AttributeName: to
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    SmsLogsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.SMS_LOGS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: smsLogId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: to
+            AttributeType: S
+        KeySchema:
+          - AttributeName: smsLogId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: to-index
+            KeySchema:
+              - AttributeName: to
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    BirthdaysTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.BIRTHDAYS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: birthdayId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: birthdayId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    EventsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.EVENTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: eventId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: clickfunnelsProductId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: eventId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: status-index
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: clickfunnelsProductId-index
+            KeySchema:
+              - AttributeName: clickfunnelsProductId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    EventRegistrationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.EVENT_REGISTRATIONS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: registrationId
+            AttributeType: S
+          - AttributeName: eventId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: ticketCode
+            AttributeType: S
+        KeySchema:
+          - AttributeName: registrationId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: eventId-index
+            KeySchema:
+              - AttributeName: eventId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: userId-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: ticketCode-index
+            KeySchema:
+              - AttributeName: ticketCode
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
 functions:
   authStart:
     handler: src/handlers/auth/start.handler
@@ -237,6 +498,216 @@ functions:
     events:
       - http:
           path: submissions/{submissionId}
+          method: get
+          cors: true
+
+  # Materials
+  getMaterials:
+    handler: src/handlers/materials/getMaterials.handler
+    events:
+      - http:
+          path: materials
+          method: get
+          cors: true
+
+  createMaterial:
+    handler: src/handlers/materials/createMaterial.handler
+    events:
+      - http:
+          path: materials
+          method: post
+          cors: true
+
+  updateMaterial:
+    handler: src/handlers/materials/updateMaterial.handler
+    events:
+      - http:
+          path: materials/{materialId}
+          method: put
+          cors: true
+
+  # Projects
+  getProjects:
+    handler: src/handlers/projects/getProjects.handler
+    events:
+      - http:
+          path: projects
+          method: get
+          cors: true
+
+  createProject:
+    handler: src/handlers/projects/createProject.handler
+    events:
+      - http:
+          path: projects
+          method: post
+          cors: true
+
+  # Attendance
+  checkIn:
+    handler: src/handlers/attendance/checkIn.handler
+    events:
+      - http:
+          path: attendance/check-in
+          method: post
+          cors: true
+
+  getAttendance:
+    handler: src/handlers/attendance/getAttendance.handler
+    events:
+      - http:
+          path: attendance
+          method: get
+          cors: true
+
+  # Emails
+  sendEmail:
+    handler: src/handlers/emails/sendEmail.handler
+    events:
+      - http:
+          path: emails/send
+          method: post
+          cors: true
+
+  getEmailLogs:
+    handler: src/handlers/emails/getEmailLogs.handler
+    events:
+      - http:
+          path: emails/logs
+          method: get
+          cors: true
+
+  # SMS
+  sendSms:
+    handler: src/handlers/sms/sendSms.handler
+    events:
+      - http:
+          path: sms/send
+          method: post
+          cors: true
+
+  # Birthdays
+  getBirthdays:
+    handler: src/handlers/birthdays/getBirthdays.handler
+    events:
+      - http:
+          path: birthdays
+          method: get
+          cors: true
+
+  createBirthday:
+    handler: src/handlers/birthdays/createBirthday.handler
+    events:
+      - http:
+          path: birthdays
+          method: post
+          cors: true
+
+  # Events
+  getEvents:
+    handler: src/handlers/events/getEvents.handler
+    events:
+      - http:
+          path: events
+          method: get
+          cors: true
+
+  createEvent:
+    handler: src/handlers/events/createEvent.handler
+    events:
+      - http:
+          path: events
+          method: post
+          cors: true
+
+  registerEvent:
+    handler: src/handlers/events/registerEvent.handler
+    events:
+      - http:
+          path: events/register
+          method: post
+          cors: true
+
+  checkInTicket:
+    handler: src/handlers/events/checkInTicket.handler
+    events:
+      - http:
+          path: events/check-in
+          method: post
+          cors: true
+
+  # Webhooks
+  clickfunnelsOrderWebhook:
+    handler: src/handlers/webhooks/clickfunnelsOrder.handler
+    events:
+      - http:
+          path: webhooks/clickfunnels/order
+          method: post
+          cors: true
+
+  # Access Management
+  grantAccess:
+    handler: src/handlers/access/grantAccess.handler
+    events:
+      - http:
+          path: access/grant
+          method: post
+          cors: true
+
+  getUserAccess:
+    handler: src/handlers/access/getUserAccess.handler
+    events:
+      - http:
+          path: access
+          method: get
+          cors: true
+
+  revokeAccess:
+    handler: src/handlers/access/revokeAccess.handler
+    events:
+      - http:
+          path: access/revoke
+          method: post
+          cors: true
+
+  getCourses:
+    handler: src/handlers/access/getCourses.handler
+    events:
+      - http:
+          path: courses
+          method: get
+          cors: true
+
+  # Access Management
+  grantAccess:
+    handler: src/handlers/access/grantAccess.handler
+    events:
+      - http:
+          path: access/grant
+          method: post
+          cors: true
+
+  getUserAccess:
+    handler: src/handlers/access/getUserAccess.handler
+    events:
+      - http:
+          path: access
+          method: get
+          cors: true
+
+  revokeAccess:
+    handler: src/handlers/access/revokeAccess.handler
+    events:
+      - http:
+          path: access/revoke
+          method: post
+          cors: true
+
+  getCourses:
+    handler: src/handlers/access/getCourses.handler
+    events:
+      - http:
+          path: courses
           method: get
           cors: true
 

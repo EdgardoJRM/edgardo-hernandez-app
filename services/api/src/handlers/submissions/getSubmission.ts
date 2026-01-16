@@ -11,17 +11,17 @@ export const handler = async (
 
     const submissionId = event.pathParameters?.submissionId;
     if (!submissionId) {
-      return errorResponse('submissionId is required', 400);
+      return errorResponse('El submissionId es requerido', 400);
     }
 
     const submission = await getSubmissionById(submissionId);
     if (!submission) {
-      return errorResponse('Submission not found', 404);
+      return errorResponse('Respuesta no encontrada', 404);
     }
 
     // Verify ownership
     if (submission.userId !== authEvent.userId) {
-      return errorResponse('Unauthorized', 403);
+      return errorResponse('No autorizado', 403);
     }
 
     return {
@@ -41,11 +41,11 @@ export const handler = async (
       ),
     };
   } catch (error: any) {
-    if (error.message === 'Missing authorization token' || error.message === 'Invalid or expired token') {
+    if (error.message === 'Token de autorización faltante' || error.message === 'Token inválido o expirado') {
       return errorResponse(error.message, 401);
     }
     console.error('Error in getSubmission:', error);
-    return errorResponse(error.message || 'Internal server error', 500);
+    return errorResponse(error.message || 'Error interno del servidor', 500);
   }
 };
 
