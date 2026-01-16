@@ -41,25 +41,11 @@ export default function AuthStart() {
       });
 
       if (response.success) {
-        Alert.alert(
-          'Email enviado',
-          'Revisa tu correo. Recibirás tanto un Magic Link como un código de 6 dígitos. Puedes usar cualquiera de los dos para iniciar sesión.',
-          [
-            {
-              text: 'Ingresar código',
-              onPress: () => {
-                router.push({
-                  pathname: '/auth/verify',
-                  params: { email: email.toLowerCase().trim() },
-                });
-              },
-            },
-            {
-              text: 'OK',
-              style: 'default',
-            },
-          ]
-        );
+        // Redirigir a la página de confirmación
+        router.push({
+          pathname: '/auth/sent',
+          params: { email: email.toLowerCase().trim() },
+        });
       } else {
         Alert.alert('Error', response.error || 'No se pudo enviar el email');
       }

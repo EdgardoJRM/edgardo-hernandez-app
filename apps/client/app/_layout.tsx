@@ -30,6 +30,7 @@ export default function RootLayout() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="auth/index" options={{ title: 'Iniciar Sesión' }} />
+      <Stack.Screen name="auth/sent" options={{ title: 'Email Enviado' }} />
       <Stack.Screen name="auth/verify" options={{ title: 'Verificar Código' }} />
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
