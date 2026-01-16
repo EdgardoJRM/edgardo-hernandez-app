@@ -46,7 +46,12 @@ export const handler = async (
       return errorResponse('Enlace inválido o expirado. Por favor solicita un nuevo enlace de acceso.', 400);
     }
 
-    console.log('Challenge found:', { challengeId: challenge.challengeId, createdAt: challenge.createdAt });
+    console.log('Challenge found:', { 
+      challengeId: challenge.challengeId, 
+      createdAt: challenge.createdAt,
+      expiresAt: challenge.expiresAt,
+      expiresIn: challenge.expiresAt - Math.floor(Date.now() / 1000),
+    });
 
     // Verify token
     if (!challenge.tokenHash) {
@@ -57,9 +62,11 @@ export const handler = async (
     if (!isValid) {
       console.error('Token verification failed:', { 
         tokenLength: token.length, 
-        hasTokenHash: !!challenge.tokenHash 
+        tokenPrefix: token.substring(0, 10),
+        hasTokenHash: !!challenge.tokenHash,
+        challengeId: challenge.challengeId,
       });
-      return errorResponse('Token inválido', 400);
+      return errorResponse('Token inválido. Este enlace puede ser de un email anterior. Por favor solicita un nuevo enlace.', 400);
     }
 
     console.log('Token verified successfully');
