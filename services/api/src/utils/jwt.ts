@@ -22,4 +22,4 @@ export function verifyToken(token: string): JWTPayload {
   } catch (error) {
     throw new Error('Token inválido o expirado');
   }
-
+}

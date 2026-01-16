@@ -91,7 +91,12 @@ plugins:
 
 package:
   individually: false
-  excludeDevDependencies: false
+  excludeDevDependencies: true
+  patterns:
+    - '!node_modules/**'
+    - 'node_modules/**'
+    - '!src/**/*.test.ts'
+    - '!src/**/*.spec.ts'
 
 custom:
   dynamodb:

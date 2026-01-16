@@ -1,4 +1,4 @@
-import { sendEmail } from './email';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { Event } from '../models/event';
 import { createEmailLog, updateEmailLogStatus } from '../models/emailLog';
 
@@ -112,8 +112,35 @@ export async function sendEventTicketEmail(
   });
 
   try {
-    // Enviar email
-    await sendEmail(email, subject, htmlBody, true);
+    // Enviar email usando SES directamente
+    const sesClient = new SESClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+    });
+    
+    const command = new SendEmailCommand({
+      Source: fromEmail,
+      Destination: {
+        ToAddresses: [email],
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+          Charset: 'UTF-8',
+        },
+        Body: {
+          Html: {
+            Data: htmlBody,
+            Charset: 'UTF-8',
+          },
+          Text: {
+            Data: textBody,
+            Charset: 'UTF-8',
+          },
+        },
+      },
+    });
+    
+    await sesClient.send(command);
     await updateEmailLogStatus(emailLog.emailLogId, 'sent', Date.now());
   } catch (error: any) {
     await updateEmailLogStatus(emailLog.emailLogId, 'failed', undefined, error.message);

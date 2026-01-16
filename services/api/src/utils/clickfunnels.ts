@@ -130,11 +130,11 @@ export async function getClickFunnelsContact(email: string): Promise<ClickFunnel
       throw new Error(`ClickFunnels API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     
     // Según la documentación: GET /workspaces/{workspace_id}/contacts
     // La API devuelve un objeto con contacts o un array
-    let contacts = [];
+    let contacts: any[] = [];
     if (Array.isArray(data)) {
       contacts = data;
     } else if (data.contacts && Array.isArray(data.contacts)) {
@@ -233,7 +233,7 @@ export async function getClickFunnelsCourses(): Promise<any[]> {
       throw new Error(`ClickFunnels API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     // Según la documentación, puede devolver un array o un objeto con courses
     if (Array.isArray(data)) {
       return data;
@@ -272,7 +272,7 @@ export async function grantCourseAccess(email: string, courseId: string): Promis
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData: any = await response.json().catch(() => ({}));
       throw new Error(errorData.message || `ClickFunnels API error: ${response.status}`);
     }
 
@@ -311,8 +311,8 @@ export async function revokeCourseAccess(email: string, courseId: string): Promi
       return { success: true };
     }
 
-    const enrollmentsData = await enrollmentsResponse.json();
-    const enrollments = Array.isArray(enrollmentsData) 
+    const enrollmentsData: any = await enrollmentsResponse.json();
+    const enrollments: any[] = Array.isArray(enrollmentsData) 
       ? enrollmentsData 
       : (enrollmentsData.enrollments || []);
     
