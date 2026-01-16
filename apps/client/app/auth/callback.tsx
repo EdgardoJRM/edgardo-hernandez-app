@@ -49,7 +49,9 @@ export default function AuthCallback() {
 
     const exchangeToken = async () => {
       // Marcar como ejecutado inmediatamente para prevenir múltiples llamadas
-      setHasExchanged(true);
+      hasExchangedRef.current = true;
+      console.log('Starting token exchange (first time only)');
+      
       try {
         const trimmedToken = token.trim();
         const trimmedEmail = email.toLowerCase().trim();
@@ -115,7 +117,7 @@ export default function AuthCallback() {
 
     exchangeToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Solo ejecutar una vez al montar
+  }, []); // Solo ejecutar una vez al montar - usar ref para prevenir múltiples ejecuciones
 
   const handleResendEmail = async () => {
     const getParam = (key: string): string => {
