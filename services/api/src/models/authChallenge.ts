@@ -28,9 +28,10 @@ export async function createChallenge(
   ip?: string
 ): Promise<AuthChallenge> {
   const now = Math.floor(Date.now() / 1000);
+  const normalizedEmail = email.toLowerCase().trim();
   const challenge: AuthChallenge = {
     challengeId: uuidv4(),
-    email,
+    email: normalizedEmail,
     type,
     expiresAt: now + ttlMinutes * 60,
     attempts: 0,
@@ -59,6 +60,15 @@ export async function findValidChallenge(
   type: ChallengeType
 ): Promise<AuthChallenge | null> {
   const now = Math.floor(Date.now() / 1000);
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  console.log('Searching for challenge:', { 
+    email: normalizedEmail, 
+    type, 
+    now,
+    table: AUTH_CHALLENGES_TABLE 
+  });
+  
   const result = await docClient.send(
     new QueryCommand({
       TableName: AUTH_CHALLENGES_TABLE,
@@ -69,7 +79,7 @@ export async function findValidChallenge(
         '#type': 'type',
       },
       ExpressionAttributeValues: {
-        ':email': email,
+        ':email': normalizedEmail,
         ':type': type,
         ':now': now,
       },
@@ -77,6 +87,17 @@ export async function findValidChallenge(
       ScanIndexForward: false,
     })
   );
+
+  console.log('Challenge query result:', {
+    found: result.Items?.length || 0,
+    items: result.Items?.map((item: any) => ({
+      challengeId: item.challengeId,
+      type: item.type,
+      expiresAt: item.expiresAt,
+      consumedAt: item.consumedAt,
+      createdAt: item.createdAt,
+    }))
+  });
 
   return result.Items?.[0] as AuthChallenge | null;
 }
