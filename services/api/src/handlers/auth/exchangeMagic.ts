@@ -43,7 +43,7 @@ export const handler = async (
     const challenge = await findValidChallenge(email, 'magic_link');
     if (!challenge) {
       console.error('Challenge not found for email:', email);
-      return errorResponse('Enlace inválido o expirado', 400);
+      return errorResponse('Enlace inválido o expirado. Por favor solicita un nuevo enlace de acceso.', 400);
     }
 
     console.log('Challenge found:', { challengeId: challenge.challengeId, createdAt: challenge.createdAt });
@@ -70,8 +70,15 @@ export const handler = async (
     // Get or create user
     let user = await getOrCreateUser(email);
 
-    // Verificar y sincronizar con ClickFunnels
-    const clickfunnelsData = await getClickFunnelsContact(email);
+    // Verificar y sincronizar con ClickFunnels (no bloquear si falla)
+    let clickfunnelsData;
+    try {
+      clickfunnelsData = await getClickFunnelsContact(email);
+    } catch (cfError: any) {
+      console.warn('Error fetching ClickFunnels contact (non-blocking):', cfError.message);
+      clickfunnelsData = { contact: null };
+    }
+    
     if (clickfunnelsData.contact) {
       const cfContact = clickfunnelsData.contact;
       const updates: any = {};

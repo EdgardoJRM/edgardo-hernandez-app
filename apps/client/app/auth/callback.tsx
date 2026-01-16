@@ -48,7 +48,8 @@ export default function AuthCallback() {
           email: trimmedEmail, 
           tokenLength: trimmedToken.length,
           tokenPrefix: trimmedToken.substring(0, 10),
-          tokenSuffix: trimmedToken.substring(trimmedToken.length - 10)
+          tokenSuffix: trimmedToken.substring(trimmedToken.length - 10),
+          fullToken: trimmedToken
         });
         
         const response = await apiFetch<{ token: string; user: any }>(
@@ -60,6 +61,8 @@ export default function AuthCallback() {
           }
         );
 
+        console.log('Exchange response:', JSON.stringify(response, null, 2));
+
         if (response.success && response.data) {
           await setAuth(response.data.token, response.data.user);
           setStatus('success');
@@ -68,8 +71,20 @@ export default function AuthCallback() {
           }, 1000);
         } else {
           setStatus('error');
-          setError(response.error || 'Token inválido o expirado');
-          console.error('Exchange failed:', response);
+          const errorMsg = response.error || 'Token inválido o expirado';
+          setError(errorMsg);
+          console.error('Exchange failed:', {
+            success: response.success,
+            error: response.error,
+            fullResponse: response
+          });
+          
+          // Si el error es que el enlace expiró, ofrecer opción de solicitar uno nuevo
+          if (errorMsg.includes('expirado') || errorMsg.includes('inválido')) {
+            setTimeout(() => {
+              router.replace('/auth');
+            }, 3000);
+          }
         }
       } catch (err: any) {
         setStatus('error');
@@ -95,6 +110,11 @@ export default function AuthCallback() {
       <View style={styles.container}>
         <Text style={styles.errorText}>Error</Text>
         <Text style={styles.errorMessage}>{error}</Text>
+        {(error.includes('expirado') || error.includes('inválido')) && (
+          <Text style={styles.redirectText}>
+            Redirigiendo a la página de inicio de sesión...
+          </Text>
+        )}
       </View>
     );
   }
@@ -134,5 +154,12 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  redirectText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.primary,
+    textAlign: 'center',
+    marginTop: theme.spacing.md,
   },
 });
