@@ -13,6 +13,12 @@ const requestSchema = z.object({
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    const { handleOptionsRequest } = await import('../../utils/response');
+    return handleOptionsRequest();
+  }
+
   try {
     if (!event.body) {
       return errorResponse('El cuerpo de la solicitud es requerido', 400);

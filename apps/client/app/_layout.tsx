@@ -45,7 +45,6 @@ export default function RootLayout() {
       <Stack.Screen name="sms" options={{ title: 'Mensajes SMS' }} />
       <Stack.Screen name="birthdays" options={{ title: 'Cumpleaños' }} />
       <Stack.Screen name="events" options={{ title: 'Eventos y Talleres' }} />
-      <Stack.Screen name="events/scanner" options={{ title: 'Scanner Check-in' }} />
       <Stack.Screen name="access" options={{ title: 'Gestión de Accesos' }} />
       <Stack.Screen name="courses" options={{ title: 'Mis Cursos' }} />
     </Stack>
