@@ -42,7 +42,8 @@ export const handler = async (
       tokenLength: token.length, 
       tokenPrefix: token.substring(0, 10),
       tokenSuffix: token.substring(token.length - 10),
-      tokenChars: token.split('').map((c, i) => ({ char: c, code: c.charCodeAt(0) })).slice(0, 20),
+      tokenFull: token, // Log completo para debugging
+      tokenIsHex: /^[0-9a-f]{64}$/i.test(token),
     });
 
     // Find valid challenge
