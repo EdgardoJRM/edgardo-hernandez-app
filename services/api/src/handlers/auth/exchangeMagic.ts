@@ -71,8 +71,29 @@ export const handler = async (
       receivedTokenLength: token.length,
       receivedTokenPrefix: token.substring(0, 10),
       receivedTokenSuffix: token.substring(token.length - 10),
+      receivedTokenFull: token, // Log completo del token recibido
       hashPrefix: challenge.tokenHash.substring(0, 20),
+      hashLength: challenge.tokenHash.length,
     });
+
+    // Verificar que el token tenga la longitud correcta (64 caracteres hex)
+    if (token.length !== 64) {
+      console.error('Token length mismatch:', { 
+        expected: 64, 
+        actual: token.length,
+        token: token,
+      });
+      return errorResponse('Token inválido: longitud incorrecta.', 400);
+    }
+
+    // Verificar que el token solo contenga caracteres hexadecimales
+    if (!/^[0-9a-f]{64}$/i.test(token)) {
+      console.error('Token format invalid - not hexadecimal:', { 
+        token: token,
+        tokenLength: token.length,
+      });
+      return errorResponse('Token inválido: formato incorrecto.', 400);
+    }
 
     const isValid = await verifyOtp(token, challenge.tokenHash);
     if (!isValid) {
@@ -84,14 +105,31 @@ export const handler = async (
         hasTokenHash: !!challenge.tokenHash,
         challengeId: challenge.challengeId,
         createdAt: challenge.createdAt,
+        expiresAt: challenge.expiresAt,
       });
       
       // Intentar verificar con el token sin trim por si acaso
       const untrimmedToken = validated.token;
-      const isValidUntrimmed = await verifyOtp(untrimmedToken, challenge.tokenHash);
-      console.log('Retry with untrimmed token:', { isValidUntrimmed, untrimmedLength: untrimmedToken.length });
-      
-      return errorResponse('Token inválido. Este enlace puede ser de un email anterior. Por favor solicita un nuevo enlace.', 400);
+      if (untrimmedToken !== token) {
+        console.log('Token differs after trim, trying untrimmed:', { 
+          trimmed: token, 
+          untrimmed: untrimmedToken,
+          trimmedLength: token.length,
+          untrimmedLength: untrimmedToken.length,
+        });
+        const isValidUntrimmed = await verifyOtp(untrimmedToken, challenge.tokenHash);
+        console.log('Retry with untrimmed token result:', { isValidUntrimmed });
+        if (isValidUntrimmed) {
+          // Si funciona sin trim, usar ese token
+          console.log('Token verification succeeded with untrimmed token');
+        } else {
+          return errorResponse('Token inválido. Este enlace puede ser de un email anterior. Por favor solicita un nuevo enlace.', 400);
+        }
+      } else {
+        return errorResponse('Token inválido. Este enlace puede ser de un email anterior. Por favor solicita un nuevo enlace.', 400);
+      }
+    } else {
+      console.log('Token verification succeeded');
     }
 
     console.log('Token verified successfully');
