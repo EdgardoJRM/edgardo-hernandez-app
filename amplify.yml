@@ -10,9 +10,9 @@ frontend:
         - npm install
         - cd ../..
         - echo "Node version:"
-        - node --version
+        - 'node --version'
         - echo "NPM version:"
-        - npm --version
+        - 'npm --version'
     build:
       commands:
         - echo "Building frontend..."
