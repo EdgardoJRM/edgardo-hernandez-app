@@ -10,7 +10,7 @@ provider:
   environment:
     JWT_SECRET: ${env:JWT_SECRET, 'dev-secret-change-in-production'}
     SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, 'soporte@edgardohernandez.com'}
-    APP_BASE_URL: ${env:APP_BASE_URL, 'http://localhost:8081'}
+    APP_BASE_URL: ${env:APP_BASE_URL, 'https://main.dk25r0mbxd2eb.amplifyapp.com'}
     CLICKFUNNELS_CLIENT_ID: ${env:CLICKFUNNELS_CLIENT_ID, '_NH9cr55huOJbUNvcLk-MYRKhQ_h1JyEEAGalc10da8'}
     CLICKFUNNELS_CLIENT_SECRET: ${env:CLICKFUNNELS_CLIENT_SECRET, 'LzEJNuCFcYNc1LWfM05C51Hb54xAbdJPz51mHCK60Xs'}
     CLICKFUNNELS_API_KEY: ${env:CLICKFUNNELS_API_KEY, ''}
