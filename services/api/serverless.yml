@@ -689,36 +689,3 @@ functions:
           method: get
           cors: true
 
-  # Access Management
-  grantAccess:
-    handler: src/handlers/access/grantAccess.handler
-    events:
-      - http:
-          path: access/grant
-          method: post
-          cors: true
-
-  getUserAccess:
-    handler: src/handlers/access/getUserAccess.handler
-    events:
-      - http:
-          path: access
-          method: get
-          cors: true
-
-  revokeAccess:
-    handler: src/handlers/access/revokeAccess.handler
-    events:
-      - http:
-          path: access/revoke
-          method: post
-          cors: true
-
-  getCourses:
-    handler: src/handlers/access/getCourses.handler
-    events:
-      - http:
-          path: courses
-          method: get
-          cors: true
-
