@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { apiFetch } from '../../src/utils/api';
@@ -12,11 +12,12 @@ export default function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError] = useState('');
   const [resending, setResending] = useState(false);
-  const [hasExchanged, setHasExchanged] = useState(false);
+  const hasExchangedRef = useRef(false);
 
   useEffect(() => {
-    // Prevenir múltiples ejecuciones
-    if (hasExchanged || status !== 'loading') {
+    // Prevenir múltiples ejecuciones usando ref
+    if (hasExchangedRef.current || status !== 'loading') {
+      console.log('Skipping exchange - already executed or status changed');
       return;
     }
 
@@ -85,12 +86,12 @@ export default function AuthCallback() {
           console.log('User data:', response.data.user);
           
           try {
-            await setAuth(response.data.token, response.data.user);
+          await setAuth(response.data.token, response.data.user);
             console.log('Auth set successfully, redirecting to dashboard');
-            setStatus('success');
-            setTimeout(() => {
-              router.replace('/dashboard');
-            }, 1000);
+          setStatus('success');
+          setTimeout(() => {
+            router.replace('/dashboard');
+          }, 1000);
           } catch (authError: any) {
             console.error('Error setting auth:', authError);
             setStatus('error');
