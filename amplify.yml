@@ -3,9 +3,9 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Installing root dependencies..."
+        - echo "Installing root dependencies"
         - npm install
-        - echo "Installing client dependencies..."
+        - echo "Installing client dependencies"
         - cd apps/client
         - npm install
         - cd ../..
@@ -15,17 +15,17 @@ frontend:
         - 'npm --version'
     build:
       commands:
-        - echo "Building frontend..."
+        - echo "Building frontend"
         - cd apps/client
         - 'npm run build:web'
-        - echo "Build completed, checking output..."
+        - echo "Build completed checking output"
         - 'ls -la dist/ || echo "dist folder not found"'
         - cd ../..
     postBuild:
       commands:
-        - echo "Post-build: Verifying artifacts..."
-        - 'ls -la apps/client/dist/ || echo "Warning: dist folder not found"'
-        - echo "Build completed successfully!"
+        - echo "Post-build Verifying artifacts"
+        - 'ls -la apps/client/dist/ || echo "Warning dist folder not found"'
+        - echo "Build completed successfully"
   artifacts:
     baseDirectory: apps/client/dist
     files:
