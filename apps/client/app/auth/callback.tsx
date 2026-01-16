@@ -65,7 +65,7 @@ export default function AuthCallback() {
     };
 
     exchangeToken();
-  }, [localParams, searchParams]);
+  }, [params]);
 
   if (status === 'loading') {
     return (
